@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>物理扭蛋機 DEMO</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.6/lottie.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        #canvas-container { position: relative; width: 500px; height: 700px; }
+        /* 機器外框圖案 */
+        #gacha-bg { position: absolute; width: 100%; top: 0; z-index: 10; pointer-events: none; }
+        /* Lottie 按鈕容器 */
+        #lottie-btn { 
+            position: absolute; width: 150px; height: 150px; 
+            bottom: 180px; right: 40px; z-index: 20; cursor: pointer; 
+        }
+    </style>
+</head>
+<body>
+
+<div id="canvas-container">
+    <img id="gacha-bg" src="machine.png" alt="Machine">
+    <div id="lottie-btn"></div>
+</div>
+
+<script>
+const { Engine, Render, Runner, Bodies, Composite, Mouse, MouseConstraint, Body } = Matter;
+
+// --- 1. 初始化物理引擎 ---
+const engine = Engine.create();
+const world = engine.world;
+const container = document.getElementById('canvas-container');
+const render = Render.create({
+    element: container,
+    engine: engine,
+    options: { width: 500, height: 700, wireframes: false, background: 'transparent' }
+});
+
+Render.run(render);
+Runner.run(Runner.create(), engine);
+
+// --- 2. 建立靜態障礙 (依照你的圖片結構) ---
+const wallOptions = { isStatic: true, render: { visible: false } };
+const leftWall = Bodies.rectangle(100, 250, 20, 300, wallOptions);
+const rightWall = Bodies.rectangle(400, 250, 20, 300, wallOptions);
+const bottomPlate = Bodies.rectangle(250, 400, 320, 20, wallOptions); // 透明罩底部
+const exitSlope = Bodies.rectangle(150, 550, 300, 20, { ...wallOptions, angle: 0.3 }); // 出口坡道
+
+Composite.add(world, [leftWall, rightWall, bottomPlate, exitSlope]);
+
+// --- 3. 生成扭蛋函數 ---
+const gachaImages = ['ball1-A.png', 'ball2_F.png'];
+function createBall() {
+    const ball = Bodies.circle(200 + Math.random() * 100, 150, 35, {
+        restitution: 0.6, // 彈性
+        friction: 0.05,
+        render: {
+            sprite: { texture: gachaImages[Math.floor(Math.random() * gachaImages.length)], xScale: 0.4, yScale: 0.4 }
+        }
+    });
+    Composite.add(world, ball);
+}
+
+// 初始在機器裡放 5 顆
+for(let i=0; i<5; i++) createBall();
+
+// --- 4. Lottie 按鈕邏輯 ---
+const lottieAnim = lottie.loadAnimation({
+    container: document.getElementById('lottie-btn'),
+    renderer: 'svg',
+    loop: false,
+    autoplay: false,
+    path: 'animation.json'
+});
+
+document.getElementById('lottie-btn').addEventListener('click', () => {
+    lottieAnim.goToAndPlay(0, true);
+    
+    // 物理連動：轉動時打開「隱形閘門」
+    // 這裡我們模擬：直接對一顆球施加力量讓它滾入出口
+    const balls = world.bodies.filter(b => !b.isStatic);
+    if(balls.length > 0) {
+        const targetBall = balls[0];
+        // 施力讓球掉進左下角出口
+        Body.applyForce(targetBall, targetBall.position, { x: -0.05, y: 0.02 });
+    }
+});
+
+</script>
+</body>
+</html>
