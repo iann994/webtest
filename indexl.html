@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>物理扭蛋機 DEMO</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.6/lottie.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        #canvas-container { position: relative; width: 500px; height: 700px; }
+        /* 機器外框圖案 */
+        #gacha-bg { position: absolute; width: 100%; top: 0; z-index: 10; pointer-events: none; }
+        /* Lottie 按鈕容器 */
+        #lottie-btn { 
+            position: absolute; width: 150px; height: 150px; 
+            bottom: 180px; right: 40px; z-index: 20; cursor: pointer; 
+        }
+    </style>
+</head>
+<body>
+
+<div id="canvas-container">
+    <img id="gacha-bg" src="machine.png" alt="Machine">
+    <div id="lottie-btn"></div>
+</div>
+
+<script>
+    // 確保這些變數在全域或適當位置
+    const lottieContainer = document.getElementById('lottie-btn');
+
+    // 載入動畫
+    const lottieAnim = lottie.loadAnimation({
+        container: lottieContainer,
+        renderer: 'svg', 
+        loop: false,
+        autoplay: false,
+        path: 'animation.json' // 請確保你的檔案已改名為 animation.json
+    });
+
+    // 點擊事件監聽
+    lottieContainer.addEventListener('click', () => {
+        console.log("按鈕點擊成功");
+        lottieAnim.goToAndPlay(0, true);
+        
+        // 觸發物理效果 (需配合你前面的 Matter.js 設定)
+        triggerPhysicsBall(); 
+    });
+
+    function triggerPhysicsBall() {
+        const balls = world.bodies.filter(b => !b.isStatic);
+        if(balls.length > 0) {
+            Matter.Body.applyForce(balls[0], balls[0].position, { x: -0.05, y: 0.02 });
+        }
+    }
+</script>
+</body>
+</html>

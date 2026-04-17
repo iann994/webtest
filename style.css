@@ -1,0 +1,11 @@
+#lottie-btn { 
+    position: absolute; 
+    width: 150px;   /* 必須有寬度 */
+    height: 150px;  /* 必須有高度 */
+    bottom: 180px; 
+    right: 40px; 
+    z-index: 20; 
+    cursor: pointer;
+    /* 增加背景色測試，如果看得到紅色方塊卻看不到動畫，就是動畫載入問題 */
+    /* background: rgba(255,0,0,0.2); */ 
+}
